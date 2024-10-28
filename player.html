@@ -25,7 +25,6 @@
         function onYouTubeIframeAPIReady() {
             loadPlaylistFromUrl();
             createPlayer();
-            setInterval(checkForPlaylistUpdates, 5000); // Verifica atualizações na playlist a cada 5 segundos
         }
 
         function loadPlaylistFromUrl() {
@@ -40,11 +39,11 @@
             player = new YT.Player('player', {
                 width: '100%',
                 height: '100%',
-                videoId: playlist[0],
+                videoId: playlist[currentIndex],
                 playerVars: {
                     autoplay: 1,
                     controls: 0,
-                    disablekb: 1,
+                    disablekb: 0, // Permite o teclado para controlar o vídeo
                     fs: 0,
                     modestbranding: 1,
                     rel: 0,
@@ -52,28 +51,31 @@
                 },
                 events: {
                     onReady: (event) => event.target.playVideo(),
-                    onStateChange: (event) => {
-                        if (event.data === YT.PlayerState.ENDED) {
-                            currentIndex = (currentIndex + 1) % playlist.length;
-                            player.loadVideoById(playlist[currentIndex]);
-                        }
-                    }
+                    onStateChange: (event) => handleStateChange(event)
                 }
             });
         }
 
-        // Função para verificar e recarregar a playlist caso ela tenha sido atualizada
-        function checkForPlaylistUpdates() {
+        function handleStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                // Avança para o próximo vídeo na playlist e atualiza caso tenha mudado
+                currentIndex = (currentIndex + 1) % playlist.length;
+                updatePlaylistAndPlayNext();
+            }
+        }
+
+        // Verifica se a playlist foi atualizada e carrega o próximo vídeo na sequência
+        function updatePlaylistAndPlayNext() {
             const urlParams = new URLSearchParams(window.location.search);
             const playlistData = urlParams.get('playlist');
             const newPlaylist = JSON.parse(decodeURIComponent(playlistData)).map(video => video.id);
 
-            // Atualiza e reinicia o player se a playlist mudou
+            // Atualiza a playlist caso tenha sido alterada
             if (JSON.stringify(newPlaylist) !== JSON.stringify(playlist)) {
                 playlist = newPlaylist;
-                currentIndex = 0;  // Reinicia a sequência no início
-                player.loadVideoById(playlist[currentIndex]);
+                currentIndex = 0; // Reinicia do início se houver atualização na lista
             }
+            player.loadVideoById(playlist[currentIndex]); // Carrega o próximo vídeo na sequência
         }
     </script>
 </body>
