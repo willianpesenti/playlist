@@ -7,18 +7,25 @@
 </head>
 <body>
 
-    <!-- Adicionando autoplay no vídeo -->
-    <video id="myVideo" controls autoplay muted>
+    <!-- Exibe uma mensagem para o usuário iniciar o vídeo -->
+    <div id="startButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer;">
+        Toque na tela para iniciar o vídeo em tela cheia
+    </div>
+
+    <video id="myVideo" controls autoplay muted style="display: none;">
         <source src="seu-video.mp4" type="video/mp4">
         Seu navegador não suporta o elemento de vídeo.
     </video>
 
     <script>
-        // Seleciona o vídeo e entra em tela cheia automaticamente
-        window.addEventListener("load", () => {
+        document.getElementById("startButton").addEventListener("click", () => {
             const video = document.getElementById("myVideo");
 
-            // Função para iniciar o vídeo em tela cheia
+            // Esconde o botão de início e exibe o vídeo
+            document.getElementById("startButton").style.display = "none";
+            video.style.display = "block";
+
+            // Função para ativar o modo tela cheia
             const requestFullscreen = () => {
                 if (video.requestFullscreen) {
                     video.requestFullscreen();
@@ -31,7 +38,7 @@
                 }
             };
 
-            // Reproduz o vídeo e aciona o modo fullscreen
+            // Inicia a reprodução do vídeo e tenta colocá-lo em tela cheia
             video.play().then(() => {
                 requestFullscreen();
             }).catch(error => {
