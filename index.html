@@ -7,40 +7,37 @@
 </head>
 <body>
 
-    <!-- Exibe uma mensagem para o usuário iniciar o vídeo -->
+    <!-- Mensagem para o usuário interagir -->
     <div id="startButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer;">
-        Toque na tela para iniciar o vídeo em tela cheia
+        Toque para reproduzir o vídeo em tela cheia
     </div>
 
-    <video id="myVideo" controls autoplay muted style="display: none;">
+    <!-- Vídeo oculto inicialmente -->
+    <video id="myVideo" controls muted playsinline style="display: none;">
         <source src="seu-video.mp4" type="video/mp4">
         Seu navegador não suporta o elemento de vídeo.
     </video>
 
     <script>
+        // A função para iniciar o vídeo e solicitar tela cheia
         document.getElementById("startButton").addEventListener("click", () => {
             const video = document.getElementById("myVideo");
 
-            // Esconde o botão de início e exibe o vídeo
+            // Oculta o botão de início e exibe o vídeo
             document.getElementById("startButton").style.display = "none";
             video.style.display = "block";
 
-            // Função para ativar o modo tela cheia
-            const requestFullscreen = () => {
+            // Reproduz o vídeo e tenta entrar em tela cheia após a reprodução
+            video.play().then(() => {
                 if (video.requestFullscreen) {
                     video.requestFullscreen();
-                } else if (video.webkitRequestFullscreen) { // Suporte para Safari
-                    video.webkitRequestFullscreen();
+                } else if (video.webkitEnterFullscreen) { // Suporte específico para iOS
+                    video.webkitEnterFullscreen();
                 } else if (video.mozRequestFullScreen) { // Suporte para Firefox
                     video.mozRequestFullScreen();
                 } else if (video.msRequestFullscreen) { // Suporte para IE/Edge
                     video.msRequestFullscreen();
                 }
-            };
-
-            // Inicia a reprodução do vídeo e tenta colocá-lo em tela cheia
-            video.play().then(() => {
-                requestFullscreen();
             }).catch(error => {
                 console.error("Erro ao reproduzir o vídeo em fullscreen:", error);
             });
