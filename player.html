@@ -23,14 +23,16 @@
         document.head.appendChild(tag);
 
         function onYouTubeIframeAPIReady() {
+            loadPlaylistFromUrl();
+            createPlayer();
+            setInterval(checkForPlaylistUpdates, 5000); // Verifica atualizações na playlist a cada 5 segundos
+        }
+
+        function loadPlaylistFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             const playlistData = urlParams.get('playlist');
-            
             if (playlistData) {
                 playlist = JSON.parse(decodeURIComponent(playlistData)).map(video => video.id);
-                if (playlist.length > 0) {
-                    createPlayer();
-                }
             }
         }
 
@@ -58,6 +60,20 @@
                     }
                 }
             });
+        }
+
+        // Função para verificar e recarregar a playlist caso ela tenha sido atualizada
+        function checkForPlaylistUpdates() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const playlistData = urlParams.get('playlist');
+            const newPlaylist = JSON.parse(decodeURIComponent(playlistData)).map(video => video.id);
+
+            // Atualiza e reinicia o player se a playlist mudou
+            if (JSON.stringify(newPlaylist) !== JSON.stringify(playlist)) {
+                playlist = newPlaylist;
+                currentIndex = 0;  // Reinicia a sequência no início
+                player.loadVideoById(playlist[currentIndex]);
+            }
         }
     </script>
 </body>
