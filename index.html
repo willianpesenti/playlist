@@ -1,4 +1,4 @@
-<!-- admin.html -->
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -28,6 +28,25 @@
         .video-item button {
             margin-left: 10px;
         }
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .player-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .player-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -45,8 +64,11 @@
             <button onclick="addVideo()">Adicionar Vídeo</button>
         </div>
         <div id="videoList"></div>
-        <button onclick="savePlaylist()">Salvar Playlist</button>
-        <button onclick="logout()">Sair</button>
+        <div class="button-container">
+            <button onclick="savePlaylist()">Salvar Playlist</button>
+            <a href="player.html" target="_blank" class="player-button">Abrir Player</a>
+            <button onclick="logout()">Sair</button>
+        </div>
     </div>
 
     <script>
