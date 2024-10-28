@@ -1,0 +1,145 @@
+<!-- admin.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Sistema de Playlist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .login-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .playlist-container {
+            display: none;
+        }
+        .video-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+        .video-item button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <h2>Login Administrativo</h2>
+        <input type="text" id="username" placeholder="Usuário">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="login()">Entrar</button>
+    </div>
+
+    <div class="playlist-container" id="playlistContainer">
+        <h2>Gerenciamento de Playlist</h2>
+        <div>
+            <input type="text" id="videoUrl" placeholder="URL do vídeo do YouTube">
+            <button onclick="addVideo()">Adicionar Vídeo</button>
+        </div>
+        <div id="videoList"></div>
+        <button onclick="savePlaylist()">Salvar Playlist</button>
+        <button onclick="logout()">Sair</button>
+    </div>
+
+    <script>
+        // Credenciais (em produção, isso deve estar no servidor)
+        const CREDENTIALS = {
+            username: 'admin',
+            password: 'admin123'
+        };
+
+        let playlist = [];
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === CREDENTIALS.username && password === CREDENTIALS.password) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('playlistContainer').style.display = 'block';
+                loadPlaylist();
+            } else {
+                alert('Credenciais inválidas!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('playlistContainer').style.display = 'none';
+        }
+
+        function addVideo() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const videoId = extractVideoId(videoUrl);
+            
+            if (videoId) {
+                playlist.push(videoId);
+                updateVideoList();
+                document.getElementById('videoUrl').value = '';
+            } else {
+                alert('URL inválida do YouTube');
+            }
+        }
+
+        function extractVideoId(url) {
+            const regex = /(?:youtube\.com\/watch\?v=|youtu.be\/)([^&\s]+)/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        function removeVideo(index) {
+            playlist.splice(index, 1);
+            updateVideoList();
+        }
+
+        function moveVideo(index, direction) {
+            if (direction === 'up' && index > 0) {
+                [playlist[index], playlist[index-1]] = [playlist[index-1], playlist[index]];
+            } else if (direction === 'down' && index < playlist.length - 1) {
+                [playlist[index], playlist[index+1]] = [playlist[index+1], playlist[index]];
+            }
+            updateVideoList();
+        }
+
+        function updateVideoList() {
+            const container = document.getElementById('videoList');
+            container.innerHTML = '';
+
+            playlist.forEach((videoId, index) => {
+                const item = document.createElement('div');
+                item.className = 'video-item';
+                item.innerHTML = `
+                    <span>${videoId}</span>
+                    <button onclick="moveVideo(${index}, 'up')">↑</button>
+                    <button onclick="moveVideo(${index}, 'down')">↓</button>
+                    <button onclick="removeVideo(${index})">Remover</button>
+                `;
+                container.appendChild(item);
+            });
+            
+            savePlaylist();
+        }
+
+        function savePlaylist() {
+            localStorage.setItem('youtube-playlist', JSON.stringify(playlist));
+            // Em um ambiente real, você enviaria isso para seu backend ou GitHub
+        }
+
+        function loadPlaylist() {
+            const saved = localStorage.getItem('youtube-playlist');
+            if (saved) {
+                playlist = JSON.parse(saved);
+                updateVideoList();
+            }
+        }
+    </script>
+</body>
+</html>
