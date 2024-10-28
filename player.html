@@ -4,30 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Touch to Start Video</title>
+    <style>
+        /* Ajuste para garantir que o vídeo ocupe a tela completa */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+        #touchArea {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-size: 24px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        #myVideo {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
 
     <!-- Tela de toque para iniciar o vídeo -->
-    <div id="touchArea" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer; background-color: #007bff; color: white; padding: 20px; text-align: center;">
-        Toque na tela para iniciar o vídeo
-    </div>
+    <div id="touchArea">Toque na tela para iniciar o vídeo</div>
 
     <!-- Vídeo oculto inicialmente -->
-    <video id="myVideo" muted playsinline style="display: none; width: 100%; height: auto;">
+    <video id="myVideo" playsinline muted>
         <source src="seu-video.mp4" type="video/mp4">
         Seu navegador não suporta o elemento de vídeo.
     </video>
 
     <script>
-        // Evento para iniciar o vídeo ao tocar na tela
         document.getElementById("touchArea").addEventListener("click", () => {
             const video = document.getElementById("myVideo");
 
-            // Esconde a área de toque e exibe o vídeo
+            // Oculta a área de toque e exibe o vídeo
             document.getElementById("touchArea").style.display = "none";
             video.style.display = "block";
 
-            // Inicia a reprodução do vídeo
+            // Tenta iniciar o vídeo
             video.play().then(() => {
                 // Remove os controles para evitar pausa
                 video.removeAttribute("controls");
