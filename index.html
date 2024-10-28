@@ -1,4 +1,3 @@
-<!-- index.html - Painel Administrativo -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,65 +6,20 @@
     <title>Painel de Controle - Player YouTube</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .container {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            padding: 8px 16px;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        button:hover {
-            background: #1976D2;
-        }
-        .video-list {
-            margin: 20px 0;
-        }
-        .video-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            background: white;
-            margin: 5px 0;
-            border: 1px solid #eee;
-            border-radius: 4px;
-        }
-        .video-title {
-            flex: 1;
-            margin-right: 10px;
-        }
-        .player-url {
-            width: 100%;
-            padding: 10px;
-            background: #eee;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 20px;
-            word-break: break-all;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .container { background: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .input-group { margin-bottom: 20px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #1976D2; }
+        .video-list { margin: 20px 0; }
+        .video-item { display: flex; align-items: center; padding: 10px; background: white; margin: 5px 0; border: 1px solid #eee; border-radius: 4px; cursor: move; }
+        .video-item.dragging { opacity: 0.5; background: #e0e0e0; }
+        .video-title { flex: 1; margin-right: 10px; display: flex; align-items: center; }
+        .video-title::before { content: "☰"; margin-right: 10px; color: #999; }
+        .player-url { width: 100%; padding: 10px; background: #eee; border: 1px solid #ddd; border-radius: 4px; margin-top: 20px; word-break: break-all; }
+        .drag-handle { cursor: move; padding: 0 10px; color: #999; }
+        .video-item.drag-over { border: 2px dashed #2196F3; }
     </style>
 </head>
 <body>
@@ -97,6 +51,7 @@
     <script>
         let playlist = [];
         const LOGIN = { user: 'admin', pass: 'admin123' };
+        let draggedItem = null;
 
         // Funções de Login/Logout
         function login() {
@@ -131,8 +86,8 @@
             const url = document.getElementById('videoUrl').value;
             const videoId = extractVideoId(url);
             if (videoId) {
-                playlist.push(videoId);
-                localStorage.setItem('playlist', JSON.stringify(playlist));
+                playlist.push({ id: videoId, title: `Vídeo ${playlist.length + 1}` }); // Define título padrão
+                savePlaylist();
                 updatePlaylistDisplay();
                 document.getElementById('videoUrl').value = '';
             } else {
@@ -142,20 +97,60 @@
 
         function removeVideo(index) {
             playlist.splice(index, 1);
-            localStorage.setItem('playlist', JSON.stringify(playlist));
+            savePlaylist();
             updatePlaylistDisplay();
+        }
+
+        function savePlaylist() {
+            localStorage.setItem('playlist', JSON.stringify(playlist));
         }
 
         function updatePlaylistDisplay() {
             const listElement = document.getElementById('videoList');
             listElement.innerHTML = '';
-            playlist.forEach((videoId, index) => {
+            
+            playlist.forEach((video, index) => {
                 const item = document.createElement('div');
                 item.className = 'video-item';
+                item.draggable = true;
                 item.innerHTML = `
-                    <span class="video-title">${videoId}</span>
+                    <span class="video-title">${video.title} - ${video.id}</span>
                     <button onclick="removeVideo(${index})">Remover</button>
                 `;
+
+                // Eventos de drag and drop
+                item.addEventListener('dragstart', () => {
+                    draggedItem = index;
+                    item.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    item.classList.add('drag-over');
+                });
+
+                item.addEventListener('dragleave', () => {
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    item.classList.remove('drag-over');
+                    const draggedOverIndex = index;
+                    
+                    if (draggedItem !== draggedOverIndex) {
+                        const itemToMove = playlist[draggedItem];
+                        playlist.splice(draggedItem, 1);
+                        playlist.splice(draggedOverIndex, 0, itemToMove);
+                        savePlaylist();
+                        updatePlaylistDisplay();
+                    }
+                });
+
                 listElement.appendChild(item);
             });
         }
