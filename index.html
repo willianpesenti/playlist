@@ -47,6 +47,13 @@
         .player-button:hover {
             background-color: #45a049;
         }
+        #playerUrl {
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -66,9 +73,10 @@
         <div id="videoList"></div>
         <div class="button-container">
             <button onclick="savePlaylist()">Salvar Playlist</button>
-            <a href="player.html" target="_blank" class="player-button">Abrir Player</a>
+            <button onclick="generatePlayerUrl()" class="player-button">Gerar Link do Player</button>
             <button onclick="logout()">Sair</button>
         </div>
+        <input type="text" id="playerUrl" readonly>
     </div>
 
     <script>
@@ -152,7 +160,6 @@
 
         function savePlaylist() {
             localStorage.setItem('youtube-playlist', JSON.stringify(playlist));
-            // Em um ambiente real, você enviaria isso para seu backend ou GitHub
         }
 
         function loadPlaylist() {
@@ -161,6 +168,19 @@
                 playlist = JSON.parse(saved);
                 updateVideoList();
             }
+        }
+
+        function generatePlayerUrl() {
+            const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
+            const playlistParam = encodeURIComponent(JSON.stringify(playlist));
+            const playerUrl = `${baseUrl}/player.html?playlist=${playlistParam}`;
+            
+            const playerUrlInput = document.getElementById('playerUrl');
+            playerUrlInput.value = playerUrl;
+            playerUrlInput.select();
+            
+            // Abre o player em uma nova aba
+            window.open(playerUrl, '_blank');
         }
     </script>
 </body>
