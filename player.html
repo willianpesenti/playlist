@@ -42,15 +42,14 @@
                 videoId: playlist[currentIndex],
                 playerVars: {
                     autoplay: 1,
-                    controls: 1,  // Habilita os controles para play/pause
-                    disablekb: 0, // Permite controle do teclado
-                    fs: 1,        // Permite tela cheia
+                    controls: 1,  // Permite controle completo do vídeo
+                    disablekb: 0, // Permite controle via teclado
+                    fs: 1,        // Habilita tela cheia
                     modestbranding: 1,
                     rel: 0,
                     showinfo: 0
                 },
                 events: {
-                    onReady: (event) => event.target.playVideo(),
                     onStateChange: handleStateChange
                 }
             });
@@ -58,24 +57,25 @@
 
         function handleStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
-                // Verifica e atualiza a playlist ao final de cada vídeo
+                // Atualiza a playlist e toca o próximo vídeo ao fim do vídeo atual
                 currentIndex = (currentIndex + 1) % playlist.length;
                 updatePlaylistAndPlayNext();
             }
         }
 
-        // Verifica se a playlist foi atualizada e carrega o próximo vídeo na sequência
         function updatePlaylistAndPlayNext() {
             const urlParams = new URLSearchParams(window.location.search);
             const playlistData = urlParams.get('playlist');
             const newPlaylist = JSON.parse(decodeURIComponent(playlistData)).map(video => video.id);
 
-            // Atualiza a playlist caso tenha sido alterada
+            // Se a playlist foi atualizada, reinicia a partir do novo conteúdo
             if (JSON.stringify(newPlaylist) !== JSON.stringify(playlist)) {
                 playlist = newPlaylist;
-                currentIndex = 0; // Reinicia do início se houver atualização na lista
+                currentIndex = 0; // Reinicia do início caso a lista seja alterada
             }
-            player.loadVideoById(playlist[currentIndex]); // Carrega o próximo vídeo na sequência
+            
+            // Carrega o próximo vídeo na sequência
+            player.loadVideoById(playlist[currentIndex]);
         }
     </script>
 </body>
