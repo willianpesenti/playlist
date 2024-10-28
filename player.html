@@ -1,29 +1,22 @@
-<!-- player.html -->
+<!-- player.html - Player -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Player - Sistema de Playlist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player YouTube</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
             background: #000;
             width: 1920px;
             height: 1080px;
+            overflow: hidden;
         }
         #player {
             width: 1920px;
             height: 1080px;
-            pointer-events: none; /* Desabilita interações com o mouse */
-        }
-        /* Impede seleção de texto */
-        * {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -33,78 +26,51 @@
     <script>
         let player;
         let playlist = [];
-        let currentVideoIndex = 0;
+        let currentIndex = 0;
 
         // Carrega a API do YouTube
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        document.head.appendChild(tag);
 
-        // Função chamada automaticamente pela API do YouTube
+        // Inicializa o player quando a API estiver pronta
         function onYouTubeIframeAPIReady() {
-            loadPlaylist();
-        }
-
-        function loadPlaylist() {
             // Pega a playlist da URL
             const urlParams = new URLSearchParams(window.location.search);
-            const playlistParam = urlParams.get('playlist');
+            const playlistData = urlParams.get('playlist');
             
-            if (playlistParam) {
-                playlist = JSON.parse(decodeURIComponent(playlistParam));
+            if (playlistData) {
+                playlist = JSON.parse(decodeURIComponent(playlistData));
                 if (playlist.length > 0) {
-                    initializePlayer();
+                    createPlayer();
                 }
             }
         }
 
-        function initializePlayer() {
+        function createPlayer() {
             player = new YT.Player('player', {
                 width: '1920',
                 height: '1080',
-                videoId: playlist[currentVideoIndex],
+                videoId: playlist[0],
                 playerVars: {
-                    'autoplay': 1,
-                    'controls': 0,
-                    'disablekb': 1,
-                    'rel': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1,
-                    'fs': 0,
-                    'playsinline': 1
+                    autoplay: 1,
+                    controls: 0,
+                    disablekb: 1,
+                    fs: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0
                 },
                 events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                    onReady: (event) => event.target.playVideo(),
+                    onStateChange: (event) => {
+                        if (event.data === YT.PlayerState.ENDED) {
+                            currentIndex = (currentIndex + 1) % playlist.length;
+                            player.loadVideoById(playlist[currentIndex]);
+                        }
+                    }
                 }
             });
-        }
-
-        function onPlayerReady(event) {
-            event.target.playVideo();
-            // Força o modo tela cheia
-            const iframe = document.querySelector('#player');
-            iframe.style.position = 'fixed';
-            iframe.style.top = '0';
-            iframe.style.left = '0';
-            iframe.style.width = '1920px';
-            iframe.style.height = '1080px';
-        }
-
-        function onPlayerStateChange(event) {
-            // Quando o vídeo termina
-            if (event.data === YT.PlayerState.ENDED) {
-                playNextVideo();
-            }
-        }
-
-        function playNextVideo() {
-            currentVideoIndex++;
-            if (currentVideoIndex >= playlist.length) {
-                currentVideoIndex = 0; // Volta ao início da playlist
-            }
-            player.loadVideoById(playlist[currentVideoIndex]);
         }
     </script>
 </body>
