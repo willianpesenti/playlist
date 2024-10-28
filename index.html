@@ -1,187 +1,44 @@
-<!-- index.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Sistema de Playlist</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .login-container {
-            text-align: center;
-            margin-top: 50px;
-        }
-        .playlist-container {
-            display: none;
-        }
-        .video-item {
-            display: flex;
-            align-items: center;
-            margin: 10px 0;
-            padding: 10px;
-            background: #f5f5f5;
-        }
-        .video-item button {
-            margin-left: 10px;
-        }
-        .button-container {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        .player-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .player-button:hover {
-            background-color: #45a049;
-        }
-        #playerUrl {
-            width: 100%;
-            margin-top: 20px;
-            padding: 10px;
-            background: #f8f8f8;
-            border: 1px solid #ddd;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Autoplay Fullscreen</title>
 </head>
 <body>
-    <div class="login-container" id="loginContainer">
-        <h2>Login Administrativo</h2>
-        <input type="text" id="username" placeholder="Usuário">
-        <input type="password" id="password" placeholder="Senha">
-        <button onclick="login()">Entrar</button>
-    </div>
 
-    <div class="playlist-container" id="playlistContainer">
-        <h2>Gerenciamento de Playlist</h2>
-        <div>
-            <input type="text" id="videoUrl" placeholder="URL do vídeo do YouTube">
-            <button onclick="addVideo()">Adicionar Vídeo</button>
-        </div>
-        <div id="videoList"></div>
-        <div class="button-container">
-            <button onclick="savePlaylist()">Salvar Playlist</button>
-            <button onclick="generatePlayerUrl()" class="player-button">Gerar Link do Player</button>
-            <button onclick="logout()">Sair</button>
-        </div>
-        <input type="text" id="playerUrl" readonly>
-    </div>
+    <!-- Adicionando autoplay no vídeo -->
+    <video id="myVideo" controls autoplay muted>
+        <source src="seu-video.mp4" type="video/mp4">
+        Seu navegador não suporta o elemento de vídeo.
+    </video>
 
     <script>
-        // Credenciais (em produção, isso deve estar no servidor)
-        const CREDENTIALS = {
-            username: 'admin',
-            password: 'admin123'
-        };
+        // Seleciona o vídeo e entra em tela cheia automaticamente
+        window.addEventListener("load", () => {
+            const video = document.getElementById("myVideo");
 
-        let playlist = [];
+            // Função para iniciar o vídeo em tela cheia
+            const requestFullscreen = () => {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) { // Suporte para Safari
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) { // Suporte para Firefox
+                    video.mozRequestFullScreen();
+                } else if (video.msRequestFullscreen) { // Suporte para IE/Edge
+                    video.msRequestFullscreen();
+                }
+            };
 
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            if (username === CREDENTIALS.username && password === CREDENTIALS.password) {
-                document.getElementById('loginContainer').style.display = 'none';
-                document.getElementById('playlistContainer').style.display = 'block';
-                loadPlaylist();
-            } else {
-                alert('Credenciais inválidas!');
-            }
-        }
-
-        function logout() {
-            document.getElementById('loginContainer').style.display = 'block';
-            document.getElementById('playlistContainer').style.display = 'none';
-        }
-
-        function addVideo() {
-            const videoUrl = document.getElementById('videoUrl').value;
-            const videoId = extractVideoId(videoUrl);
-            
-            if (videoId) {
-                playlist.push(videoId);
-                updateVideoList();
-                document.getElementById('videoUrl').value = '';
-            } else {
-                alert('URL inválida do YouTube');
-            }
-        }
-
-        function extractVideoId(url) {
-            const regex = /(?:youtube\.com\/watch\?v=|youtu.be\/)([^&\s]+)/;
-            const match = url.match(regex);
-            return match ? match[1] : null;
-        }
-
-        function removeVideo(index) {
-            playlist.splice(index, 1);
-            updateVideoList();
-        }
-
-        function moveVideo(index, direction) {
-            if (direction === 'up' && index > 0) {
-                [playlist[index], playlist[index-1]] = [playlist[index-1], playlist[index]];
-            } else if (direction === 'down' && index < playlist.length - 1) {
-                [playlist[index], playlist[index+1]] = [playlist[index+1], playlist[index]];
-            }
-            updateVideoList();
-        }
-
-        function updateVideoList() {
-            const container = document.getElementById('videoList');
-            container.innerHTML = '';
-
-            playlist.forEach((videoId, index) => {
-                const item = document.createElement('div');
-                item.className = 'video-item';
-                item.innerHTML = `
-                    <span>${videoId}</span>
-                    <button onclick="moveVideo(${index}, 'up')">↑</button>
-                    <button onclick="moveVideo(${index}, 'down')">↓</button>
-                    <button onclick="removeVideo(${index})">Remover</button>
-                `;
-                container.appendChild(item);
+            // Reproduz o vídeo e aciona o modo fullscreen
+            video.play().then(() => {
+                requestFullscreen();
+            }).catch(error => {
+                console.error("Erro ao reproduzir o vídeo em fullscreen:", error);
             });
-            
-            savePlaylist();
-        }
-
-        function savePlaylist() {
-            localStorage.setItem('youtube-playlist', JSON.stringify(playlist));
-        }
-
-        function loadPlaylist() {
-            const saved = localStorage.getItem('youtube-playlist');
-            if (saved) {
-                playlist = JSON.parse(saved);
-                updateVideoList();
-            }
-        }
-
-        function generatePlayerUrl() {
-            const baseUrl = window.location.href.replace('index.html', '').replace(/\/$/, '');
-            const playlistParam = encodeURIComponent(JSON.stringify(playlist));
-            const playerUrl = `${baseUrl}/player.html?playlist=${playlistParam}`;
-            
-            const playerUrlInput = document.getElementById('playerUrl');
-            playerUrlInput.value = playerUrl;
-            playerUrlInput.select();
-            
-            // Abre o player em uma nova aba
-            window.open(playerUrl, '_blank');
-        }
+        });
     </script>
+
 </body>
 </html>
