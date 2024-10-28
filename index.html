@@ -88,10 +88,10 @@
 
         function addVideo() {
             const url = document.getElementById('videoUrl').value;
-            const description = document.getElementById('videoDescription').value;
+            const description = document.getElementById('videoDescription').value || `Vídeo ${playlist.length + 1}`;
             const videoId = extractVideoId(url);
             if (videoId) {
-                playlist.push({ id: videoId, description: description || `Vídeo ${playlist.length + 1}` });
+                playlist.push({ id: videoId, description });
                 savePlaylist();
                 updatePlaylistDisplay();
                 document.getElementById('videoUrl').value = '';
