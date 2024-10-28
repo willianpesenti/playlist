@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player Button</title>
+    <title>Touch to Start Video</title>
 </head>
 <body>
 
-    <!-- Botão de Play -->
-    <div id="playButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer; background-color: #007bff; color: white; padding: 20px; border-radius: 8px;">
-        Clique para Iniciar o Vídeo
+    <!-- Tela de toque para iniciar o vídeo -->
+    <div id="touchArea" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer; background-color: #007bff; color: white; padding: 20px; text-align: center;">
+        Toque na tela para iniciar o vídeo
     </div>
 
     <!-- Vídeo oculto inicialmente -->
@@ -19,12 +19,12 @@
     </video>
 
     <script>
-        // Evento para o botão de play
-        document.getElementById("playButton").addEventListener("click", () => {
+        // Evento para iniciar o vídeo ao tocar na tela
+        document.getElementById("touchArea").addEventListener("click", () => {
             const video = document.getElementById("myVideo");
 
-            // Esconde o botão de play e exibe o vídeo
-            document.getElementById("playButton").style.display = "none";
+            // Esconde a área de toque e exibe o vídeo
+            document.getElementById("touchArea").style.display = "none";
             video.style.display = "block";
 
             // Inicia a reprodução do vídeo
@@ -32,7 +32,7 @@
                 // Remove os controles para evitar pausa
                 video.removeAttribute("controls");
 
-                // Remove o controle de pausa manual
+                // Impede que o vídeo seja pausado
                 video.addEventListener("pause", () => {
                     video.play();
                 });
