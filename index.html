@@ -1,48 +1,145 @@
+<!-- admin.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Autoplay Fullscreen</title>
+    <title>Admin - Sistema de Playlist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .login-container {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .playlist-container {
+            display: none;
+        }
+        .video-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+        .video-item button {
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
-
-    <!-- Mensagem para o usuário interagir -->
-    <div id="startButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer;">
-        Toque para reproduzir o vídeo em tela cheia
+    <div class="login-container" id="loginContainer">
+        <h2>Login Administrativo</h2>
+        <input type="text" id="username" placeholder="Usuário">
+        <input type="password" id="password" placeholder="Senha">
+        <button onclick="login()">Entrar</button>
     </div>
 
-    <!-- Vídeo oculto inicialmente -->
-    <video id="myVideo" controls muted playsinline style="display: none;">
-        <source src="seu-video.mp4" type="video/mp4">
-        Seu navegador não suporta o elemento de vídeo.
-    </video>
+    <div class="playlist-container" id="playlistContainer">
+        <h2>Gerenciamento de Playlist</h2>
+        <div>
+            <input type="text" id="videoUrl" placeholder="URL do vídeo do YouTube">
+            <button onclick="addVideo()">Adicionar Vídeo</button>
+        </div>
+        <div id="videoList"></div>
+        <button onclick="savePlaylist()">Salvar Playlist</button>
+        <button onclick="logout()">Sair</button>
+    </div>
 
     <script>
-        // A função para iniciar o vídeo e solicitar tela cheia
-        document.getElementById("startButton").addEventListener("click", () => {
-            const video = document.getElementById("myVideo");
+        // Credenciais (em produção, isso deve estar no servidor)
+        const CREDENTIALS = {
+            username: 'admin',
+            password: 'admin123'
+        };
 
-            // Oculta o botão de início e exibe o vídeo
-            document.getElementById("startButton").style.display = "none";
-            video.style.display = "block";
+        let playlist = [];
 
-            // Reproduz o vídeo e tenta entrar em tela cheia após a reprodução
-            video.play().then(() => {
-                if (video.requestFullscreen) {
-                    video.requestFullscreen();
-                } else if (video.webkitEnterFullscreen) { // Suporte específico para iOS
-                    video.webkitEnterFullscreen();
-                } else if (video.mozRequestFullScreen) { // Suporte para Firefox
-                    video.mozRequestFullScreen();
-                } else if (video.msRequestFullscreen) { // Suporte para IE/Edge
-                    video.msRequestFullscreen();
-                }
-            }).catch(error => {
-                console.error("Erro ao reproduzir o vídeo em fullscreen:", error);
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === CREDENTIALS.username && password === CREDENTIALS.password) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('playlistContainer').style.display = 'block';
+                loadPlaylist();
+            } else {
+                alert('Credenciais inválidas!');
+            }
+        }
+
+        function logout() {
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('playlistContainer').style.display = 'none';
+        }
+
+        function addVideo() {
+            const videoUrl = document.getElementById('videoUrl').value;
+            const videoId = extractVideoId(videoUrl);
+            
+            if (videoId) {
+                playlist.push(videoId);
+                updateVideoList();
+                document.getElementById('videoUrl').value = '';
+            } else {
+                alert('URL inválida do YouTube');
+            }
+        }
+
+        function extractVideoId(url) {
+            const regex = /(?:youtube\.com\/watch\?v=|youtu.be\/)([^&\s]+)/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        function removeVideo(index) {
+            playlist.splice(index, 1);
+            updateVideoList();
+        }
+
+        function moveVideo(index, direction) {
+            if (direction === 'up' && index > 0) {
+                [playlist[index], playlist[index-1]] = [playlist[index-1], playlist[index]];
+            } else if (direction === 'down' && index < playlist.length - 1) {
+                [playlist[index], playlist[index+1]] = [playlist[index+1], playlist[index]];
+            }
+            updateVideoList();
+        }
+
+        function updateVideoList() {
+            const container = document.getElementById('videoList');
+            container.innerHTML = '';
+
+            playlist.forEach((videoId, index) => {
+                const item = document.createElement('div');
+                item.className = 'video-item';
+                item.innerHTML = `
+                    <span>${videoId}</span>
+                    <button onclick="moveVideo(${index}, 'up')">↑</button>
+                    <button onclick="moveVideo(${index}, 'down')">↓</button>
+                    <button onclick="removeVideo(${index})">Remover</button>
+                `;
+                container.appendChild(item);
             });
-        });
-    </script>
+            
+            savePlaylist();
+        }
 
+        function savePlaylist() {
+            localStorage.setItem('youtube-playlist', JSON.stringify(playlist));
+            // Em um ambiente real, você enviaria isso para seu backend ou GitHub
+        }
+
+        function loadPlaylist() {
+            const saved = localStorage.getItem('youtube-playlist');
+            if (saved) {
+                playlist = JSON.parse(saved);
+                updateVideoList();
+            }
+        }
+    </script>
 </body>
 </html>
