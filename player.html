@@ -23,15 +23,14 @@
         document.head.appendChild(tag);
 
         function onYouTubeIframeAPIReady() {
-            loadPlaylistFromUrl();
+            loadPlaylistFromStorage();
             createPlayer();
         }
 
-        function loadPlaylistFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const playlistData = urlParams.get('playlist');
-            if (playlistData) {
-                playlist = JSON.parse(decodeURIComponent(playlistData)).map(video => video.id);
+        function loadPlaylistFromStorage() {
+            const savedPlaylist = localStorage.getItem('playlist');
+            if (savedPlaylist) {
+                playlist = JSON.parse(savedPlaylist).map(video => video.id);
             }
         }
 
@@ -64,16 +63,9 @@
         }
 
         function updatePlaylistAndPlayNext() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const playlistData = urlParams.get('playlist');
-            const newPlaylist = JSON.parse(decodeURIComponent(playlistData)).map(video => video.id);
+            // Recarrega a playlist do localStorage
+            loadPlaylistFromStorage();
 
-            // Se a playlist foi atualizada, reinicia a partir do novo conteúdo
-            if (JSON.stringify(newPlaylist) !== JSON.stringify(playlist)) {
-                playlist = newPlaylist;
-                currentIndex = 0; // Reinicia do início caso a lista seja alterada
-            }
-            
             // Carrega o próximo vídeo na sequência
             player.loadVideoById(playlist[currentIndex]);
         }
