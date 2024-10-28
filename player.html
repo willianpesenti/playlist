@@ -3,41 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player Button</title>
+    <title>Video Autoplay Fullscreen</title>
 </head>
 <body>
 
-    <!-- Botão de Play -->
-    <div id="playButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer; background-color: #007bff; color: white; padding: 20px; border-radius: 8px;">
-        Clique para Iniciar o Vídeo
-    </div>
-
-    <!-- Vídeo oculto inicialmente -->
-    <video id="myVideo" muted playsinline style="display: none; width: 100%; height: auto;">
+    <!-- Adicionando autoplay no vídeo -->
+    <video id="myVideo" controls autoplay muted>
         <source src="seu-video.mp4" type="video/mp4">
         Seu navegador não suporta o elemento de vídeo.
     </video>
 
     <script>
-        // Evento para o botão de play
-        document.getElementById("playButton").addEventListener("click", () => {
+        // Seleciona o vídeo e entra em tela cheia automaticamente
+        window.addEventListener("load", () => {
             const video = document.getElementById("myVideo");
 
-            // Esconde o botão de play e exibe o vídeo
-            document.getElementById("playButton").style.display = "none";
-            video.style.display = "block";
+            // Função para iniciar o vídeo em tela cheia
+            const requestFullscreen = () => {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen();
+                } else if (video.webkitRequestFullscreen) { // Suporte para Safari
+                    video.webkitRequestFullscreen();
+                } else if (video.mozRequestFullScreen) { // Suporte para Firefox
+                    video.mozRequestFullScreen();
+                } else if (video.msRequestFullscreen) { // Suporte para IE/Edge
+                    video.msRequestFullscreen();
+                }
+            };
 
-            // Inicia a reprodução do vídeo
+            // Reproduz o vídeo e aciona o modo fullscreen
             video.play().then(() => {
-                // Remove os controles para evitar pausa
-                video.removeAttribute("controls");
-
-                // Remove o controle de pausa manual
-                video.addEventListener("pause", () => {
-                    video.play();
-                });
+                requestFullscreen();
             }).catch(error => {
-                console.error("Erro ao iniciar o vídeo:", error);
+                console.error("Erro ao reproduzir o vídeo em fullscreen:", error);
             });
         });
     </script>
