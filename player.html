@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #000; width: 100%; height: 100vh; overflow: hidden; }
-        #player { width: 100%; height: 100vh; pointer-events: none; }
+        #player { width: 100%; height: 100vh; }
     </style>
 </head>
 <body>
@@ -42,23 +42,23 @@
                 videoId: playlist[currentIndex],
                 playerVars: {
                     autoplay: 1,
-                    controls: 0,
-                    disablekb: 0, // Permite o teclado para controlar o vídeo
-                    fs: 0,
+                    controls: 1,  // Habilita os controles para play/pause
+                    disablekb: 0, // Permite controle do teclado
+                    fs: 1,        // Permite tela cheia
                     modestbranding: 1,
                     rel: 0,
                     showinfo: 0
                 },
                 events: {
                     onReady: (event) => event.target.playVideo(),
-                    onStateChange: (event) => handleStateChange(event)
+                    onStateChange: handleStateChange
                 }
             });
         }
 
         function handleStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
-                // Avança para o próximo vídeo na playlist e atualiza caso tenha mudado
+                // Verifica e atualiza a playlist ao final de cada vídeo
                 currentIndex = (currentIndex + 1) % playlist.length;
                 updatePlaylistAndPlayNext();
             }
