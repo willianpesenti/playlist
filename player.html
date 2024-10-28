@@ -3,60 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Touch to Start Video</title>
-    <style>
-        /* Ajuste para garantir que o vídeo ocupe a tela completa */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-        #touchArea {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            font-size: 24px;
-            cursor: pointer;
-            background-color: #007bff;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        #myVideo {
-            display: none;
-            width: 100%;
-            height: 100vh;
-            object-fit: cover;
-        }
-    </style>
+    <title>Video Player Button</title>
 </head>
 <body>
 
-    <!-- Tela de toque para iniciar o vídeo -->
-    <div id="touchArea">Toque na tela para iniciar o vídeo</div>
+    <!-- Botão de Play -->
+    <div id="playButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer; background-color: #007bff; color: white; padding: 20px; border-radius: 8px;">
+        Clique para Iniciar o Vídeo
+    </div>
 
     <!-- Vídeo oculto inicialmente -->
-    <video id="myVideo" playsinline muted>
+    <video id="myVideo" muted playsinline style="display: none; width: 100%; height: auto;">
         <source src="seu-video.mp4" type="video/mp4">
         Seu navegador não suporta o elemento de vídeo.
     </video>
 
     <script>
-        document.getElementById("touchArea").addEventListener("click", () => {
+        // Evento para o botão de play
+        document.getElementById("playButton").addEventListener("click", () => {
             const video = document.getElementById("myVideo");
 
-            // Oculta a área de toque e exibe o vídeo
-            document.getElementById("touchArea").style.display = "none";
+            // Esconde o botão de play e exibe o vídeo
+            document.getElementById("playButton").style.display = "none";
             video.style.display = "block";
 
-            // Tenta iniciar o vídeo
+            // Inicia a reprodução do vídeo
             video.play().then(() => {
                 // Remove os controles para evitar pausa
                 video.removeAttribute("controls");
 
-                // Impede que o vídeo seja pausado
+                // Remove o controle de pausa manual
                 video.addEventListener("pause", () => {
                     video.play();
                 });
