@@ -1,111 +1,46 @@
-<!-- player.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Player - Sistema de Playlist</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background: #000;
-            width: 1920px;
-            height: 1080px;
-        }
-        #player {
-            width: 1920px;
-            height: 1080px;
-            pointer-events: none; /* Desabilita interações com o mouse */
-        }
-        /* Impede seleção de texto */
-        * {
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player Button</title>
 </head>
 <body>
-    <div id="player"></div>
+
+    <!-- Botão de Play -->
+    <div id="playButton" style="display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 24px; cursor: pointer; background-color: #007bff; color: white; padding: 20px; border-radius: 8px;">
+        Clique para Iniciar o Vídeo
+    </div>
+
+    <!-- Vídeo oculto inicialmente -->
+    <video id="myVideo" muted playsinline style="display: none; width: 100%; height: auto;">
+        <source src="seu-video.mp4" type="video/mp4">
+        Seu navegador não suporta o elemento de vídeo.
+    </video>
 
     <script>
-        let player;
-        let playlist = [];
-        let currentVideoIndex = 0;
+        // Evento para o botão de play
+        document.getElementById("playButton").addEventListener("click", () => {
+            const video = document.getElementById("myVideo");
 
-        // Carrega a API do YouTube
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            // Esconde o botão de play e exibe o vídeo
+            document.getElementById("playButton").style.display = "none";
+            video.style.display = "block";
 
-        // Função chamada automaticamente pela API do YouTube
-        function onYouTubeIframeAPIReady() {
-            loadPlaylist();
-        }
+            // Inicia a reprodução do vídeo
+            video.play().then(() => {
+                // Remove os controles para evitar pausa
+                video.removeAttribute("controls");
 
-        function loadPlaylist() {
-            // Pega a playlist da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const playlistParam = urlParams.get('playlist');
-            
-            if (playlistParam) {
-                playlist = JSON.parse(decodeURIComponent(playlistParam));
-                if (playlist.length > 0) {
-                    initializePlayer();
-                }
-            }
-        }
-
-        function initializePlayer() {
-            player = new YT.Player('player', {
-                width: '1920',
-                height: '1080',
-                videoId: playlist[currentVideoIndex],
-                playerVars: {
-                    'autoplay': 1,
-                    'controls': 0,
-                    'disablekb': 1,
-                    'rel': 0,
-                    'showinfo': 0,
-                    'modestbranding': 1,
-                    'fs': 0,
-                    'playsinline': 1
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
+                // Remove o controle de pausa manual
+                video.addEventListener("pause", () => {
+                    video.play();
+                });
+            }).catch(error => {
+                console.error("Erro ao iniciar o vídeo:", error);
             });
-        }
-
-        function onPlayerReady(event) {
-            event.target.playVideo();
-            // Força o modo tela cheia
-            const iframe = document.querySelector('#player');
-            iframe.style.position = 'fixed';
-            iframe.style.top = '0';
-            iframe.style.left = '0';
-            iframe.style.width = '1920px';
-            iframe.style.height = '1080px';
-        }
-
-        function onPlayerStateChange(event) {
-            // Quando o vídeo termina
-            if (event.data === YT.PlayerState.ENDED) {
-                playNextVideo();
-            }
-        }
-
-        function playNextVideo() {
-            currentVideoIndex++;
-            if (currentVideoIndex >= playlist.length) {
-                currentVideoIndex = 0; // Volta ao início da playlist
-            }
-            player.loadVideoById(playlist[currentVideoIndex]);
-        }
+        });
     </script>
+
 </body>
 </html>
