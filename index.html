@@ -19,11 +19,13 @@
         button { padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
         button:hover { background: #1976D2; }
         .video-list { margin: 20px 0; }
-        .video-item { display: flex; flex-direction: column; padding: 10px; background: white; margin: 5px 0; border: 1px solid #eee; border-radius: 4px; }
-        .video-title { font-weight: bold; margin-bottom: 5px; }
-        .video-description { margin-bottom: 10px; }
-        .edit-description { margin-top: 10px; display: none; }
-        .edit-description textarea { width: 100%; height: 60px; margin-bottom: 5px; }
+        .video-item { display: flex; align-items: center; padding: 10px; background: white; margin: 5px 0; border: 1px solid #eee; border-radius: 4px; cursor: move; }
+        .video-item.dragging { opacity: 0.5; background: #e0e0e0; }
+        .video-id { font-weight: bold; margin-right: 10px; }
+        .video-description { flex: 1; margin-right: 10px; }
+        .edit-input { display: none; flex: 1; margin-right: 10px; }
+        .drag-handle { cursor: move; padding: 0 10px; color: #999; }
+        .video-item.drag-over { border: 2px dashed #2196F3; }
     </style>
 </head>
 <body>
@@ -56,6 +58,7 @@
     <script>
         let playlist = [];
         const LOGIN = { user: 'admin', pass: 'admin123' };
+        let draggedItem = null;
 
         // Funções de Login/Logout
         function login() {
@@ -118,28 +121,62 @@
             playlist.forEach((video, index) => {
                 const item = document.createElement('div');
                 item.className = 'video-item';
+                item.draggable = true;
                 item.innerHTML = `
-                    <div class="video-title">ID: ${video.id}</div>
-                    <div class="video-description">Descrição: <span id="description-${index}">${video.description}</span></div>
-                    <button onclick="toggleEditDescription(${index})">Editar Descrição</button>
+                    <span class="video-id">${video.id}</span>
+                    <span class="video-description" id="description-${index}">${video.description}</span>
+                    <input type="text" class="edit-input" id="edit-description-${index}" value="${video.description}">
+                    <button onclick="toggleEdit(${index})">Editar</button>
+                    <button onclick="saveDescription(${index})">Salvar</button>
                     <button onclick="removeVideo(${index})">Remover</button>
-                    <div class="edit-description" id="edit-description-${index}">
-                        <textarea id="edit-description-text-${index}">${video.description}</textarea>
-                        <button onclick="saveDescription(${index})">Salvar</button>
-                        <button onclick="toggleEditDescription(${index})">Cancelar</button>
-                    </div>
                 `;
+
+                // Eventos de drag and drop
+                item.addEventListener('dragstart', () => {
+                    draggedItem = index;
+                    item.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    item.classList.add('drag-over');
+                });
+
+                item.addEventListener('dragleave', () => {
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    item.classList.remove('drag-over');
+                    const draggedOverIndex = index;
+                    
+                    if (draggedItem !== draggedOverIndex) {
+                        const itemToMove = playlist[draggedItem];
+                        playlist.splice(draggedItem, 1);
+                        playlist.splice(draggedOverIndex, 0, itemToMove);
+                        savePlaylist();
+                        updatePlaylistDisplay();
+                    }
+                });
+
                 listElement.appendChild(item);
             });
         }
 
-        function toggleEditDescription(index) {
-            const editDiv = document.getElementById(`edit-description-${index}`);
-            editDiv.style.display = editDiv.style.display === 'none' ? 'block' : 'none';
+        function toggleEdit(index) {
+            const descriptionSpan = document.getElementById(`description-${index}`);
+            const editInput = document.getElementById(`edit-description-${index}`);
+            descriptionSpan.style.display = descriptionSpan.style.display === 'none' ? 'inline' : 'none';
+            editInput.style.display = editInput.style.display === 'none' ? 'inline' : 'none';
         }
 
         function saveDescription(index) {
-            const newDescription = document.getElementById(`edit-description-text-${index}`).value;
+            const newDescription = document.getElementById(`edit-description-${index}`).value;
             playlist[index].description = newDescription;
             savePlaylist();
             updatePlaylistDisplay();
