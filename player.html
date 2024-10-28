@@ -10,10 +10,20 @@
             padding: 0;
             overflow: hidden;
             background: #000;
+            width: 1920px;
+            height: 1080px;
         }
         #player {
-            width: 100vw;
-            height: 100vh;
+            width: 1920px;
+            height: 1080px;
+            pointer-events: none; /* Desabilita interações com o mouse */
+        }
+        /* Impede seleção de texto */
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
     </style>
 </head>
@@ -37,28 +47,32 @@
         }
 
         function loadPlaylist() {
-            const saved = localStorage.getItem('youtube-playlist');
-            if (saved) {
-                playlist = JSON.parse(saved);
+            // Pega a playlist da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const playlistParam = urlParams.get('playlist');
+            
+            if (playlistParam) {
+                playlist = JSON.parse(decodeURIComponent(playlistParam));
                 if (playlist.length > 0) {
                     initializePlayer();
                 }
             }
-            
-            // Verifica por atualizações a cada 30 segundos
-            setInterval(checkForUpdates, 30000);
         }
 
         function initializePlayer() {
             player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
+                width: '1920',
+                height: '1080',
                 videoId: playlist[currentVideoIndex],
                 playerVars: {
                     'autoplay': 1,
                     'controls': 0,
+                    'disablekb': 1,
                     'rel': 0,
-                    'showinfo': 0
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'fs': 0,
+                    'playsinline': 1
                 },
                 events: {
                     'onReady': onPlayerReady,
@@ -69,6 +83,13 @@
 
         function onPlayerReady(event) {
             event.target.playVideo();
+            // Força o modo tela cheia
+            const iframe = document.querySelector('#player');
+            iframe.style.position = 'fixed';
+            iframe.style.top = '0';
+            iframe.style.left = '0';
+            iframe.style.width = '1920px';
+            iframe.style.height = '1080px';
         }
 
         function onPlayerStateChange(event) {
@@ -84,16 +105,6 @@
                 currentVideoIndex = 0; // Volta ao início da playlist
             }
             player.loadVideoById(playlist[currentVideoIndex]);
-        }
-
-        function checkForUpdates() {
-            const saved = localStorage.getItem('youtube-playlist');
-            if (saved) {
-                const newPlaylist = JSON.parse(saved);
-                if (JSON.stringify(newPlaylist) !== JSON.stringify(playlist)) {
-                    playlist = newPlaylist;
-                }
-            }
         }
     </script>
 </body>
