@@ -2,72 +2,63 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Player YouTube</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #000; width: 100%; height: 100vh; overflow: hidden; }
-        #player { width: 100%; height: 100vh; }
-    </style>
 </head>
 <body>
     <div id="player"></div>
+
+    <!-- YouTube API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
         let player;
         let playlist = [];
         let currentIndex = 0;
-
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.head.appendChild(tag);
+        const playlistUrl = 'https://drive.google.com/file/d/1f9JadyeznohI7hUKYkYsX_otlLU68Mtv/view?usp=sharing'; // Substitua pelo link direto do seu arquivo .txt no servidor
 
         function onYouTubeIframeAPIReady() {
-            loadPlaylistFromStorage();
-            createPlayer();
+            loadPlaylist().then(() => createPlayer());
         }
 
-        function loadPlaylistFromStorage() {
-            const savedPlaylist = localStorage.getItem('playlist');
-            if (savedPlaylist) {
-                playlist = JSON.parse(savedPlaylist).map(video => video.id);
+        async function loadPlaylist() {
+            try {
+                const response = await fetch(playlistUrl);
+                const text = await response.text();
+                playlist = text.split('\n').filter(line => line.trim() !== '').map(link => extractVideoId(link));
+            } catch (error) {
+                console.error("Erro ao carregar a playlist:", error);
             }
         }
 
         function createPlayer() {
             player = new YT.Player('player', {
-                width: '100%',
-                height: '100%',
                 videoId: playlist[currentIndex],
                 playerVars: {
                     autoplay: 1,
-                    controls: 1,  // Permite controle completo do vídeo
-                    disablekb: 0, // Permite controle via teclado
-                    fs: 1,        // Habilita tela cheia
-                    modestbranding: 1,
-                    rel: 0,
-                    showinfo: 0
+                    controls: 1
                 },
                 events: {
-                    onStateChange: handleStateChange
+                    'onStateChange': onPlayerStateChange
                 }
             });
         }
 
-        function handleStateChange(event) {
+        function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
-                // Atualiza a playlist e toca o próximo vídeo ao fim do vídeo atual
                 currentIndex = (currentIndex + 1) % playlist.length;
-                updatePlaylistAndPlayNext();
+                loadPlaylist().then(() => playNextVideo());
             }
         }
 
-        function updatePlaylistAndPlayNext() {
-            // Recarrega a playlist do localStorage
-            loadPlaylistFromStorage();
+        function playNextVideo() {
+            if (playlist.length > 0) {
+                player.loadVideoById(playlist[currentIndex]);
+            }
+        }
 
-            // Carrega o próximo vídeo na sequência
-            player.loadVideoById(playlist[currentIndex]);
+        function extractVideoId(url) {
+            const match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            return match ? match[1] : null;
         }
     </script>
 </body>
